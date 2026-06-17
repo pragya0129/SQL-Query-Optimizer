@@ -2,10 +2,28 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
     Play, Sparkles, ArrowLeft, Database, AlertTriangle,
-    CheckCircle2, Terminal, Cpu, Zap, Clock, BarChart3, HelpCircle
+    CheckCircle2, Terminal, Cpu, Clock, BarChart3, HelpCircle, LayoutTemplate
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts';
+
+const containerVariants = {
+    hidden: { opacity: 0 },
+    show: {
+        opacity: 1,
+        transition: { staggerChildren: 0.1, delayChildren: 0.1 }
+    }
+};
+
+const itemVariants = {
+    hidden: { opacity: 0, y: 15, scale: 0.98 },
+    show: {
+        opacity: 1,
+        y: 0,
+        scale: 1,
+        transition: { type: "spring", stiffness: 300, damping: 24 }
+    }
+};
 
 export default function OptimizerPage() {
     const navigate = useNavigate();
@@ -45,8 +63,8 @@ export default function OptimizerPage() {
 
         const parts = text.split(target);
         const colorClasses = type === 'danger'
-            ? 'bg-red-500/10 text-red-400 border border-red-500/20 px-1.5 py-0.5 rounded font-semibold'
-            : 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-1.5 py-0.5 rounded font-semibold';
+            ? 'bg-red-500/20 text-red-300 border border-red-500/30 px-1.5 py-0.5 rounded-md font-semibold shadow-[0_0_10px_rgba(239,68,68,0.1)]'
+            : 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 px-1.5 py-0.5 rounded-md font-semibold shadow-[0_0_10px_rgba(16,185,129,0.1)]';
 
         return (
             <span className="text-slate-300">
@@ -57,237 +75,227 @@ export default function OptimizerPage() {
         );
     };
 
-    // Helper to safely calculate improvement percentages for telemetry cards
     const calculateGain = (original, optimized) => {
         if (!original) return 0;
         return Math.round(((original - optimized) / original) * 100);
     };
 
     return (
-        <div className="min-h-screen bg-[#020617] text-slate-100 font-sans selection:bg-blue-500/30 selection:text-blue-200 antialiased relative overflow-x-hidden">
-            {/* Background Ambient Glows */}
-            <div className="absolute top-0 right-1/4 w-[500px] h-[500px] bg-blue-500/5 blur-[150px] rounded-full pointer-events-none" />
-            <div className="absolute bottom-1/4 left-1/4 w-[400px] h-[400px] bg-emerald-500/5 blur-[120px] rounded-full pointer-events-none" />
+        <div className="h-screen flex flex-col bg-[#060B19] text-slate-100 font-sans selection:bg-blue-500/30 selection:text-blue-200 antialiased relative overflow-hidden">
+            {/* Expressive Tonal Backgrounds */}
+            <div className="absolute top-[-10%] right-[-5%] w-[600px] h-[600px] bg-blue-600/10 blur-[180px] rounded-full pointer-events-none" />
+            <div className="absolute bottom-[-10%] left-[-5%] w-[500px] h-[500px] bg-indigo-600/10 blur-[150px] rounded-full pointer-events-none" />
 
-            {/* Navigation Top Bar */}
-            <nav className="border-b border-slate-900/80 bg-slate-950/40 backdrop-blur-md sticky top-0 z-50 px-6 py-4">
-                <div className="max-w-7xl mx-auto flex items-center justify-between">
+            {/* Navbar - Fixed height constraint */}
+            <nav className="shrink-0 border-b border-white/5 bg-[#060B19]/60 backdrop-blur-xl z-50 px-6 py-3">
+                <div className="max-w-[1600px] w-full mx-auto flex items-center justify-between">
                     <button
                         onClick={() => navigate('/')}
-                        className="flex items-center gap-2 text-sm text-slate-400 hover:text-slate-200 transition-colors group cursor-pointer"
+                        className="flex items-center gap-2 text-sm text-slate-400 hover:text-white transition-colors group cursor-pointer"
                     >
-                        <ArrowLeft className="w-4 h-4 transition-transform group-hover:-translate-x-0.5" />
+                        <ArrowLeft className="w-4 h-4 transition-transform group-hover:-translate-x-1" />
                         Back to Launchpad
                     </button>
-                    <div className="flex items-center gap-2 text-xs font-mono px-3 py-1 bg-slate-900 border border-slate-800 rounded-md text-slate-400">
-                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                        Engine Core Live
+                    <div className="flex items-center gap-2 text-xs font-mono px-3 py-1.5 bg-white/5 border border-white/10 rounded-full text-slate-300 shadow-sm">
+                        <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse shadow-[0_0_8px_rgba(52,211,153,0.8)]" />
+                        Optimizer Core Active
                     </div>
                 </div>
             </nav>
 
-            <div className="max-w-7xl mx-auto p-6 md:p-8 space-y-8">
-                {/* Header Block */}
-                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-900 pb-6">
-                    <div className="flex items-start gap-4">
-                        <div className="p-3 bg-gradient-to-br from-blue-600/10 to-purple-600/10 border border-blue-500/20 rounded-xl">
-                            <Database className="w-7 h-7 text-blue-400" />
-                        </div>
-                        <div>
-                            <h1 className="text-3xl font-bold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-white to-slate-400">
-                                SQL Telemetry Studio
-                            </h1>
-                            <p className="text-sm text-slate-400 mt-1">
-                                Analyze compiled query structures, isolate execution friction, and auto-refactor schema lookups.
-                            </p>
-                        </div>
+            {/* Main Workspace - Takes remaining height */}
+            <div className="flex-1 overflow-hidden p-4 md:p-6 w-full max-w-[1600px] mx-auto relative z-10">
+                <div className="h-full grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+
+                    {/* LEFT PANEL: Sticky Input Area */}
+                    <div className="lg:col-span-4 h-full">
+                        <motion.div
+                            initial={{ opacity: 0, x: -20 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            className="h-full flex flex-col bg-[#0A1128]/80 border border-white/10 backdrop-blur-md rounded-3xl p-5 shadow-2xl"
+                        >
+                            <div className="shrink-0 flex items-center gap-2 mb-4">
+                                <Terminal className="w-4 h-4 text-blue-400" />
+                                <h2 className="text-xs font-bold tracking-widest uppercase text-slate-300">Editor Console</h2>
+                            </div>
+
+                            <form onSubmit={handleOptimize} className="flex-1 flex flex-col min-h-0">
+                                <div className="flex-1 flex flex-col min-h-0 mb-4">
+                                    <label className="shrink-0 text-[10px] font-bold uppercase tracking-wider text-slate-500 ml-1 mb-2">Database Schema (Optional)</label>
+                                    <textarea
+                                        className="flex-1 h-full bg-[#040814] border border-white/5 rounded-2xl p-4 font-mono text-xs text-slate-300 focus:outline-none focus:border-indigo-500/50 focus:ring-1 focus:ring-indigo-500/20 transition-all resize-none placeholder-slate-700 [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-thumb]:bg-white/10 [&::-webkit-scrollbar-thumb]:rounded-full"
+                                        placeholder="CREATE TABLE users ( id INT PRIMARY KEY );"
+                                        value={schema}
+                                        onChange={(e) => setSchema(e.target.value)}
+                                    />
+                                </div>
+
+                                <div className="flex-[1.2] flex flex-col min-h-0 mb-4">
+                                    <label className="shrink-0 text-[10px] font-bold uppercase tracking-wider text-slate-500 ml-1 mb-2">Raw SQL Query</label>
+                                    <textarea
+                                        className="flex-1 h-full bg-[#040814] border border-white/5 rounded-2xl p-4 font-mono text-sm text-slate-200 focus:outline-none focus:border-blue-500/50 focus:ring-1 focus:ring-blue-500/20 transition-all resize-none placeholder-slate-700 leading-relaxed [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-thumb]:bg-white/10 [&::-webkit-scrollbar-thumb]:rounded-full"
+                                        placeholder="SELECT * FROM users;"
+                                        value={query}
+                                        onChange={(e) => setQuery(e.target.value)}
+                                    />
+                                </div>
+
+                                <button
+                                    type="submit"
+                                    disabled={isOptimizing || !query.trim()}
+                                    className="shrink-0 w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 disabled:from-slate-800 disabled:to-slate-800 disabled:text-slate-500 text-white py-4 rounded-2xl font-bold tracking-wide flex items-center justify-center gap-2 shadow-[0_0_20px_rgba(37,99,235,0.2)] hover:shadow-[0_0_30px_rgba(37,99,235,0.4)] transition-all cursor-pointer text-sm"
+                                >
+                                    {isOptimizing ? (
+                                        <>
+                                            <motion.div animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 1, ease: "linear" }}>
+                                                <Sparkles className="w-4 h-4 text-blue-300" />
+                                            </motion.div>
+                                            Analyzing Architecture...
+                                        </>
+                                    ) : (
+                                        <>
+                                            <Play className="w-4 h-4 fill-current text-blue-200" />
+                                            Compile Pipeline
+                                        </>
+                                    )}
+                                </button>
+                            </form>
+                        </motion.div>
                     </div>
-                </div>
 
-                {/* Workspace Layout Grid */}
-                <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-
-                    {/* Left Control Panel: Input Console */}
-                    <motion.div
-                        initial={{ opacity: 0, x: -20 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        className="lg:col-span-5 bg-slate-900/40 border border-slate-800/60 backdrop-blur-md rounded-2xl p-6 relative overflow-hidden group shadow-xl"
-                    >
-                        <div className="flex items-center gap-2 mb-4">
-                            <Terminal className="w-4 h-4 text-blue-400" />
-                            <h2 className="text-sm font-semibold tracking-wide uppercase text-slate-400">Input Editor Console</h2>
-                        </div>
-
-                        <form onSubmit={handleOptimize} className="space-y-4">
-                            {/* Optional Schema Input */}
-                            <div className="relative">
-                                <div className="flex items-center justify-between mb-2">
-                                    <label className="text-xs font-semibold uppercase tracking-wider text-slate-400">Database Schema (Optional)</label>
-                                </div>
-                                <textarea
-                                    className="w-full h-32 bg-[#030712] border border-slate-800 rounded-xl p-4 font-mono text-xs text-slate-300 focus:outline-none focus:border-purple-500/50 focus:ring-1 focus:ring-purple-500/20 transition-all resize-none placeholder-slate-700 shadow-inner"
-                                    placeholder="CREATE TABLE users ( id INT PRIMARY KEY, status VARCHAR(20) );"
-                                    value={schema}
-                                    onChange={(e) => setSchema(e.target.value)}
-                                />
-                            </div>
-
-                            {/* Raw SQL Input */}
-                            <div className="relative">
-                                <div className="flex items-center justify-between mb-2">
-                                    <label className="text-xs font-semibold uppercase tracking-wider text-slate-400">Raw SQL Query</label>
-                                </div>
-                                <textarea
-                                    className="w-full h-40 bg-[#030712] border border-slate-800 rounded-xl p-4 font-mono text-sm text-slate-200 focus:outline-none focus:border-blue-500/50 focus:ring-1 focus:ring-blue-500/20 transition-all resize-none placeholder-slate-600 leading-relaxed shadow-inner"
-                                    placeholder="SELECT * FROM orders WHERE user_id IN (SELECT id FROM users WHERE status = 'active');"
-                                    value={query}
-                                    onChange={(e) => setQuery(e.target.value)}
-                                />
-                            </div>
-                            <button
-                                type="submit"
-                                disabled={isOptimizing || !query.trim()}
-                                className="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600 disabled:from-slate-900 disabled:to-slate-900 disabled:text-slate-600 border disabled:border-slate-800/80 border-blue-500/20 text-white py-3.5 rounded-xl font-medium flex items-center justify-center gap-2 shadow-lg hover:shadow-blue-500/10 transition-all cursor-pointer text-sm"
-                            >
-                                {isOptimizing ? (
-                                    <>
-                                        <motion.div animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 1, ease: "linear" }}>
-                                            <Sparkles className="w-4 h-4 text-blue-300" />
-                                        </motion.div>
-                                        Compiling Dynamic Plan...
-                                    </>
-                                ) : (
-                                    <>
-                                        <Play className="w-4 h-4 fill-current text-blue-200" />
-                                        Compile & Optimize Pipeline
-                                    </>
-                                )}
-                            </button>
-                        </form>
-                    </motion.div>
-
-                    {/* Right Control Panel: Output Engine Metrics & Code Viewer */}
-                    <div className="lg:col-span-7">
+                    {/* RIGHT PANEL: Scrollable Dashboard */}
+                    <div className="lg:col-span-8 h-full overflow-y-auto pr-2 pb-6 [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-thumb]:bg-white/10 [&::-webkit-scrollbar-thumb]:rounded-full hover:[&::-webkit-scrollbar-thumb]:bg-white/20">
                         <AnimatePresence mode="wait">
                             {!result ? (
                                 <motion.div
+                                    key="idle"
                                     initial={{ opacity: 0 }}
                                     animate={{ opacity: 1 }}
                                     exit={{ opacity: 0 }}
-                                    className="h-[386px] border border-dashed border-slate-800/80 rounded-2xl flex flex-col items-center justify-center text-center p-6 bg-slate-950/20"
+                                    className="h-full min-h-[500px] border border-dashed border-white/10 rounded-3xl flex flex-col items-center justify-center text-center p-8 bg-[#0A1128]/30"
                                 >
-                                    <Cpu className="w-10 h-10 text-slate-700 mb-3 animate-pulse" />
-                                    <h3 className="text-slate-400 font-medium text-sm">Telemetry Feed Idle</h3>
-                                    <p className="text-xs text-slate-600 max-w-xs mt-1">
-                                        Submit an SQL instruction code block inside the console window to spark full-scale performance trace metrics.
+                                    <div className="p-6 bg-white/5 rounded-full mb-4">
+                                        <Database className="w-12 h-12 text-slate-600 animate-pulse" />
+                                    </div>
+                                    <h3 className="text-slate-300 font-semibold text-lg">Awaiting Instructions</h3>
+                                    <p className="text-sm text-slate-500 max-w-sm mt-2 leading-relaxed">
+                                        Enter your schema and SQL query to generate a complete architectural teardown and execution plan.
                                     </p>
                                 </motion.div>
                             ) : (
                                 <motion.div
-                                    initial={{ opacity: 0, x: 20 }}
-                                    animate={{ opacity: 1, x: 0 }}
-                                    exit={{ opacity: 0 }}
-                                    className="space-y-6"
+                                    key="results"
+                                    variants={containerVariants}
+                                    initial="hidden"
+                                    animate="show"
+                                    className="flex flex-col gap-6"
                                 >
-                                    {/* Dynamic Telemetry Metric Cards */}
-                                    <div className="grid grid-cols-3 gap-4">
-                                        {result.chartData?.map((item, idx) => {
-                                            const icons = [<Cpu className="w-4 h-4" />, <BarChart3 className="w-4 h-4" />, <Clock className="w-4 h-4" />];
-                                            const colors = ["text-blue-400", "text-purple-400", "text-amber-400"];
-                                            const bgColors = ["bg-blue-500/5 border-blue-500/10", "bg-purple-500/5 border-purple-500/10", "bg-amber-500/5 border-amber-500/10"];
-                                            const gain = calculateGain(item.Original, item.Optimized);
-
-                                            return (
-                                                <div key={idx} className={`border rounded-xl p-4 flex flex-col justify-between ${bgColors[idx]} shadow-sm relative overflow-hidden`}>
-                                                    <div className="flex items-center justify-between text-slate-400 text-xs font-medium">
-                                                        <span className="truncate">{item.metric}</span>
-                                                        <span className={colors[idx]}>{icons[idx]}</span>
-                                                    </div>
-                                                    <div className="mt-4">
-                                                        <div className="text-lg font-bold tracking-tight text-white">{gain}%</div>
-                                                        <p className="text-[10px] uppercase font-mono tracking-wider text-slate-500 mt-0.5">Efficiency Gain</p>
-                                                    </div>
-                                                </div>
-                                            );
-                                        })}
-                                    </div>
-
-                                    {/* Refactored Query Comparisons */}
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                        {/* Source Container */}
-                                        <div className="bg-slate-900/30 border border-slate-800/60 backdrop-blur-md rounded-xl overflow-hidden shadow-md">
-                                            <div className="bg-slate-950/60 px-4 py-2.5 flex items-center justify-between border-b border-slate-900">
-                                                <div className="flex items-center gap-2">
-                                                    <AlertTriangle className="w-3.5 h-3.5 text-red-400" />
-                                                    <span className="text-xs font-semibold uppercase font-mono tracking-wider text-slate-400">Bottleneck Found</span>
-                                                </div>
+                                    {/* ROW 1: Code Comparisons */}
+                                    <motion.div variants={itemVariants} className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <div className="flex flex-col h-[280px] bg-[#0A1128]/80 border border-red-500/20 rounded-3xl overflow-hidden shadow-lg shadow-red-900/5">
+                                            <div className="shrink-0 bg-red-500/10 px-4 py-3 border-b border-red-500/10 flex items-center gap-2">
+                                                <AlertTriangle className="w-4 h-4 text-red-400" />
+                                                <span className="text-xs font-bold uppercase tracking-wider text-red-400">Bottleneck Detected</span>
                                             </div>
-                                            <div className="p-4 font-mono text-xs leading-relaxed overflow-x-auto max-h-40 overflow-y-auto min-h-24">
+                                            <div className="flex-1 overflow-y-auto p-4 font-mono text-sm leading-relaxed [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-thumb]:bg-white/10 [&::-webkit-scrollbar-thumb]:rounded-full">
                                                 {renderHighlightedText(query, result.originalHighlight, 'danger')}
                                             </div>
                                         </div>
 
-                                        {/* Target Container */}
-                                        <div className="bg-slate-900/30 border border-emerald-950/30 backdrop-blur-md rounded-xl overflow-hidden shadow-lg shadow-emerald-950/5">
-                                            <div className="bg-emerald-950/20 px-4 py-2.5 flex items-center justify-between border-b border-emerald-900/20">
-                                                <div className="flex items-center gap-2">
-                                                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
-                                                    <span className="text-xs font-semibold uppercase font-mono tracking-wider text-emerald-400">Refactored Rewrite</span>
-                                                </div>
+                                        <div className="flex flex-col h-[280px] bg-[#0A1128]/80 border border-emerald-500/30 rounded-3xl overflow-hidden shadow-lg shadow-emerald-900/10">
+                                            <div className="shrink-0 bg-emerald-500/10 px-4 py-3 border-b border-emerald-500/10 flex items-center gap-2">
+                                                <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+                                                <span className="text-xs font-bold uppercase tracking-wider text-emerald-400">Optimized Rewrite</span>
                                             </div>
-                                            <div className="p-4 font-mono text-xs leading-relaxed overflow-x-auto max-h-40 overflow-y-auto min-h-24">
+                                            <div className="flex-1 overflow-y-auto p-4 font-mono text-sm leading-relaxed [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-thumb]:bg-white/10 [&::-webkit-scrollbar-thumb]:rounded-full">
                                                 {renderHighlightedText(result.optimizedQuery, result.optimizedHighlight, 'success')}
                                             </div>
                                         </div>
-                                    </div>
+                                    </motion.div>
 
-                                    {/* Operational Justification Block */}
-                                    <div className="bg-gradient-to-r from-slate-900/60 to-slate-950/40 border border-slate-800/80 rounded-xl p-4 flex gap-3 shadow-md">
-                                        <HelpCircle className="w-5 h-5 text-blue-400 shrink-0 mt-0.5" />
-                                        <div className="space-y-1">
-                                            <h4 className="text-xs font-semibold text-slate-300 font-mono uppercase tracking-wider">Optimizer Commentary</h4>
-                                            <p className="text-xs text-slate-400 leading-relaxed">{result.explanation}</p>
+                                    {/* ROW 2: Commentary Card (Full Width) */}
+                                    <motion.div variants={itemVariants} className="w-full">
+                                        <div className="w-full flex flex-col bg-gradient-to-br from-[#0A1128] to-[#060B19] border border-white/10 rounded-3xl p-6 shadow-xl overflow-hidden">
+                                            <div className="shrink-0 flex items-center gap-2 mb-3 border-b border-white/5 pb-3">
+                                                <div className="p-1.5 bg-blue-500/20 rounded-lg">
+                                                    <HelpCircle className="w-4 h-4 text-blue-400" />
+                                                </div>
+                                                <h4 className="text-xs font-bold text-slate-200 uppercase tracking-wide">Architectural Reasoning</h4>
+                                            </div>
+                                            <p className="text-sm text-slate-400 leading-relaxed">
+                                                {result.explanation}
+                                            </p>
                                         </div>
-                                    </div>
+                                    </motion.div>
+
+                                    {/* ROW 3: Stacked Cards + Chart Side-by-Side */}
+                                    <motion.div variants={itemVariants} className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+                                        {/* Left Col: 3 Stacked Telemetry Cards */}
+                                        <div className="lg:col-span-4 flex flex-col gap-4">
+                                            {result.chartData?.map((item, idx) => {
+                                                const icons = [<Cpu className="w-5 h-5" />, <Database className="w-5 h-5" />, <Clock className="w-5 h-5" />];
+                                                const colors = ["text-blue-400", "text-indigo-400", "text-emerald-400"];
+                                                const bgColors = ["bg-blue-500/10 border-blue-500/20", "bg-indigo-500/10 border-indigo-500/20", "bg-emerald-500/10 border-emerald-500/20"];
+                                                const gain = calculateGain(item.Original, item.Optimized);
+
+                                                return (
+                                                    <div key={idx} className={`border rounded-3xl p-5 flex flex-col justify-between ${bgColors[idx]} backdrop-blur-sm h-[100px]`}>
+                                                        <div className="flex items-center justify-between">
+                                                            <div className="flex items-center gap-3">
+                                                                <div className={`p-2 rounded-xl bg-white/5 ${colors[idx]}`}>{icons[idx]}</div>
+                                                                <div>
+                                                                    <p className="text-sm font-bold text-slate-200">{item.metric}</p>
+                                                                    <p className="text-[9px] uppercase font-mono tracking-wider text-slate-500">Efficiency Gain</p>
+                                                                </div>
+                                                            </div>
+                                                            <span className={`text-2xl font-black ${colors[idx]}`}>{gain > 0 ? `+${gain}%` : `${gain}%`}</span>
+                                                        </div>
+                                                    </div>
+                                                );
+                                            })}
+                                        </div>
+
+                                        {/* Right Col: Chart */}
+                                        <div className="lg:col-span-8 flex flex-col bg-[#0A1128]/80 border border-white/10 rounded-3xl p-6 shadow-xl h-[332px]">
+                                            <div className="shrink-0 flex items-center gap-2 mb-4 border-b border-white/5 pb-4">
+                                                <div className="p-1.5 bg-indigo-500/20 rounded-lg">
+                                                    <BarChart3 className="w-4 h-4 text-indigo-400" />
+                                                </div>
+                                                <h3 className="font-bold text-xs text-slate-200 uppercase tracking-wide">Cost Analysis Matrix</h3>
+                                            </div>
+                                            <div className="flex-1 min-h-0 w-full">
+                                                <ResponsiveContainer width="100%" height="100%">
+                                                    <BarChart data={result.chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }} barSize={24}>
+                                                        <CartesianGrid strokeDasharray="3 3" stroke="#ffffff0a" vertical={false} />
+                                                        <XAxis dataKey="metric" stroke="#64748b" tick={{ fill: '#64748b', fontSize: 11 }} axisLine={false} tickLine={false} />
+                                                        <YAxis stroke="#64748b" tick={{ fill: '#64748b', fontSize: 11 }} axisLine={false} tickLine={false} />
+                                                        <Tooltip
+                                                            cursor={{ fill: '#ffffff05' }}
+                                                            contentStyle={{ backgroundColor: '#060B19', borderColor: '#ffffff1a', borderRadius: '12px', padding: '10px', border: '1px solid rgba(255,255,255,0.1)' }}
+                                                            itemStyle={{ fontSize: '12px', fontWeight: 'bold' }}
+                                                        />
+                                                        <Bar dataKey="Original" radius={[6, 6, 6, 6]}>
+                                                            {result.chartData.map((entry, index) => (
+                                                                <Cell key={`cell-legacy-${index}`} fill="#f87171" opacity={0.8} />
+                                                            ))}
+                                                        </Bar>
+                                                        <Bar dataKey="Optimized" radius={[6, 6, 6, 6]}>
+                                                            {result.chartData.map((entry, index) => (
+                                                                <Cell key={`cell-opt-${index}`} fill="#34d399" />
+                                                            ))}
+                                                        </Bar>
+                                                    </BarChart>
+                                                </ResponsiveContainer>
+                                            </div>
+                                        </div>
+                                    </motion.div>
+
                                 </motion.div>
                             )}
                         </AnimatePresence>
                     </div>
                 </div>
-
-                {/* Lower Full-Width Telemetry: Data Engine Visual Charts */}
-                <AnimatePresence>
-                    {result && (
-                        <motion.div
-                            initial={{ opacity: 0, y: 30 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            className="bg-slate-900/20 border border-slate-900/80 backdrop-blur-md rounded-2xl p-6 shadow-xl"
-                        >
-                            <div className="flex items-center gap-2 mb-6 border-b border-slate-900 pb-4">
-                                <BarChart3 className="w-4.5 h-4.5 text-blue-400" />
-                                <h3 className="font-semibold text-sm text-slate-200 uppercase font-mono tracking-wide">Comparative Execution Analytics</h3>
-                            </div>
-
-                            <div className="h-72 w-full">
-                                <ResponsiveContainer width="100%" height="100%">
-                                    <BarChart data={result.chartData} margin={{ top: 10, right: 10, left: -10, bottom: 0 }}>
-                                        <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" vertical={false} />
-                                        <XAxis dataKey="metric" stroke="#64748b" tick={{ fill: '#64748b', fontSize: 11 }} />
-                                        <YAxis stroke="#64748b" tick={{ fill: '#64748b', fontSize: 11 }} />
-                                        <Tooltip
-                                            contentStyle={{ backgroundColor: '#090d16', borderColor: '#1e293b', borderRadius: '8px', color: '#f8fafc', fontSize: '12px' }}
-                                            itemStyle={{ color: '#cbd5e1' }}
-                                            cursor={{ fill: '#0f172a', opacity: 0.4 }}
-                                        />
-                                        <Legend wrapperStyle={{ fontSize: '12px', pt: 4 }} />
-                                        <Bar dataKey="Original" fill="#f87171" radius={[4, 4, 0, 0]} maxBarSize={45} name="Legacy Cost" />
-                                        <Bar dataKey="Optimized" fill="#34d399" radius={[4, 4, 0, 0]} maxBarSize={45} name="Refactored Cost" />
-                                    </BarChart>
-                                </ResponsiveContainer>
-                            </div>
-                        </motion.div>
-                    )}
-                </AnimatePresence>
             </div>
         </div>
     );
