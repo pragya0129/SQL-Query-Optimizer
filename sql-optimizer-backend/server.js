@@ -46,10 +46,9 @@ app.post('/api/optimize', async (req, res) => {
                 { role: "system", content: systemPrompt },
                 { role: "user", content: query }
             ],
-            // Using Llama 3 70B for high reasoning capability
-            model: "llama3-70b-8192",
-            temperature: 0.1, // Low temperature for deterministic, analytical outputs
-            response_format: { type: "json_object" } // Force Groq to output valid JSON
+            model: "llama-3.3-70b-versatile", // <-- UPDATED TO CURRENT MODEL
+            temperature: 0.1,
+            response_format: { type: "json_object" }
         });
 
         // Parse the AI's JSON response
