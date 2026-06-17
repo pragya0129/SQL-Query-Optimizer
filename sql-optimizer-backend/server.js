@@ -28,19 +28,22 @@ app.post('/api/optimize', async (req, res) => {
 
         // 1. Dynamic System Prompting
         // We only feed the AI the rules relevant to its current context.
+        // 1. Dynamic System Prompting
         const systemPrompt = `
         You are an expert database performance engineer. Analyze the provided SQL query.
         
-        ${hasSchema
-                ? "CONTEXT: A database schema is provided. RULE: You MUST cross-reference the query with the schema to find missing indexes or table scan bottlenecks. Output the 'CREATE INDEX...' statement in the optimizedQuery field if necessary. Mention the index in your explanation."
-                : "CONTEXT: No schema is provided. RULE: Assume perfect indexing. Focus ONLY on SQL syntax (e.g., changing SELECT * to explicit columns). DO NOT suggest creating indexes. Start your explanation with exactly: 'Assuming optimal indexing as no schema was provided...'"}
+        CRITICAL RULES FOR ANALYSIS:
+        1. ${hasSchema
+                ? "CONTEXT: Schema provided. RULE: Evaluate all optimization paths. If rewriting the query (e.g., converting non-SARGable functions like YEAR() into date ranges) utilizes an existing index, YOU MUST PROVIDE THE REWRITTEN QUERY as the 'optimizedQuery'. DO NOT suggest creating a new index if a query rewrite solves the issue. Only output 'CREATE INDEX' if absolutely no query rewrite can fix the bottleneck."
+                : "CONTEXT: No schema provided. RULE: Assume perfect indexing. Focus ONLY on SQL syntax."}
+        2. EXPLANATION FORMAT: The explanation MUST be an array of distinct, concise bullet points explaining the architectural changes step-by-step.
         
         You must respond in pure, valid JSON matching exactly this schema:
         {
             "originalHighlight": "The exact substring causing the bottleneck",
-            "optimizedQuery": "The rewritten SQL query, OR the CREATE INDEX statement",
+            "optimizedQuery": "The single BEST rewritten SQL query, OR the CREATE INDEX statement",
             "optimizedHighlight": "The exact substring showing the core change",
-            "explanation": "Deep technical explanation of the fix.",
+            "explanation": ["Point 1 explaining the flaw", "Point 2 explaining the fix", "Point 3 explaining the resulting gain"],
             "chartData": [
                 { "metric": "Execution Cost", "Original": number, "Optimized": number },
                 { "metric": "Rows Scanned", "Original": number, "Optimized": number },

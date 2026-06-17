@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
     Play, Sparkles, ArrowLeft, Database, AlertTriangle,
-    CheckCircle2, Terminal, Cpu, Clock, BarChart3, HelpCircle, LayoutTemplate
+    CheckCircle2, Terminal, Cpu, Clock, BarChart3, HelpCircle, LayoutTemplate, Info
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts';
@@ -215,16 +215,28 @@ export default function OptimizerPage() {
 
                                     {/* ROW 2: Commentary Card (Full Width) */}
                                     <motion.div variants={itemVariants} className="w-full">
-                                        <div className="w-full flex flex-col bg-gradient-to-br from-[#0A1128] to-[#060B19] border border-white/10 rounded-3xl p-6 shadow-xl overflow-hidden">
-                                            <div className="shrink-0 flex items-center gap-2 mb-3 border-b border-white/5 pb-3">
-                                                <div className="p-1.5 bg-blue-500/20 rounded-lg">
-                                                    <HelpCircle className="w-4 h-4 text-blue-400" />
-                                                </div>
-                                                <h4 className="text-xs font-bold text-slate-200 uppercase tracking-wide">Architectural Reasoning</h4>
+                                        {/* Reasoning */}
+                                        <div className="h-full flex flex-col bg-zinc-950/50 border border-white/[0.05] backdrop-blur-xl rounded-2xl p-5 overflow-hidden">
+                                            <div className="shrink-0 flex items-center gap-2 mb-3 pb-3 border-b border-white/[0.05]">
+                                                <Info className="w-4 h-4 text-indigo-400" />
+                                                <h4 className="text-[11px] font-bold text-zinc-300 uppercase tracking-widest">Architectural Logic</h4>
                                             </div>
-                                            <p className="text-sm text-slate-400 leading-relaxed">
-                                                {result.explanation}
-                                            </p>
+                                            <div className="flex-1 overflow-y-auto pr-2 custom-scrollbar">
+                                                {Array.isArray(result.explanation) ? (
+                                                    <ul className="space-y-2.5">
+                                                        {result.explanation.map((point, i) => (
+                                                            <li key={i} className="text-[13px] text-zinc-400 leading-relaxed font-medium flex items-start gap-2.5">
+                                                                <span className="text-indigo-500 mt-1 shrink-0">•</span>
+                                                                <span>{point}</span>
+                                                            </li>
+                                                        ))}
+                                                    </ul>
+                                                ) : (
+                                                    <p className="text-[13px] text-zinc-400 leading-relaxed font-medium">
+                                                        {result.explanation}
+                                                    </p>
+                                                )}
+                                            </div>
                                         </div>
                                     </motion.div>
 
