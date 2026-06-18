@@ -385,8 +385,23 @@ export default function OptimizerPage() {
                                                         <YAxis stroke="#52525b" tick={{ fill: '#71717a', fontSize: 10 }} axisLine={false} tickLine={false} />
                                                         <Tooltip
                                                             cursor={{ fill: '#ffffff03' }}
-                                                            contentStyle={{ backgroundColor: '#09090b', borderColor: '#ffffff10', borderRadius: '12px', padding: '12px', boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.5)' }}
-                                                            itemStyle={{ fontSize: '12px', fontWeight: '500' }}
+                                                            contentStyle={{
+                                                                backgroundColor: '#09090b',
+                                                                border: '1px solid rgba(255,255,255,0.1)',
+                                                                borderRadius: '12px',
+                                                                padding: '12px',
+                                                                boxShadow: '0 20px 25px -5px rgba(0,0,0,0.5)',
+                                                                color: '#e4e4e7'
+                                                            }}
+                                                            labelStyle={{
+                                                                color: '#f4f4f5',
+                                                                fontWeight: 600
+                                                            }}
+                                                            itemStyle={{
+                                                                color: '#d4d4d8',
+                                                                fontSize: '12px',
+                                                                fontWeight: 500
+                                                            }}
                                                         />
                                                         <Bar dataKey="Original" radius={[4, 4, 0, 0]}>
                                                             {result.chartData.map((entry, index) => (
