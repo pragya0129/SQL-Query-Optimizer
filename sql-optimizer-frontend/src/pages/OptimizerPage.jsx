@@ -4,7 +4,7 @@ import initSqlJs from 'sql.js';
 import sqlWasmUrl from 'sql.js/dist/sql-wasm.wasm?url';
 import {
     Play, Sparkles, ArrowLeft, Database, AlertCircle,
-    CheckCircle2, TerminalSquare, Cpu, Clock, BarChart3, Info, FileCode2
+    CheckCircle2, TerminalSquare, Cpu, Clock, BarChart3, Info, FileCode2, X
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts';
@@ -27,6 +27,31 @@ const itemVariants = {
     }
 };
 
+// Premium Tooltip for the Chart
+const CustomTooltip = ({ active, payload, label }) => {
+    if (active && payload && payload.length) {
+        return (
+            <div className="bg-[#09090b] border border-white/10 rounded-xl p-4 shadow-2xl">
+                <p className="text-zinc-200 font-bold text-xs mb-3">{label}</p>
+                <div className="flex flex-col gap-2 text-[11px]">
+                    {payload.map((entry, index) => {
+                        const valueColor = entry.name === 'Original' ? '#a1a1aa' : '#818cf8';
+                        return (
+                            <div key={index} className="flex items-center justify-between gap-6">
+                                <span className="text-zinc-500 uppercase tracking-wider font-semibold">{entry.name}</span>
+                                <span className="font-mono font-bold text-[13px]" style={{ color: valueColor }}>
+                                    {entry.value}
+                                </span>
+                            </div>
+                        );
+                    })}
+                </div>
+            </div>
+        );
+    }
+    return null;
+};
+
 export default function OptimizerPage() {
     const navigate = useNavigate();
     const [query, setQuery] = useState('');
@@ -35,6 +60,17 @@ export default function OptimizerPage() {
     const [result, setResult] = useState(null);
     const [db, setDb] = useState(null);
     const [dbFileName, setDbFileName] = useState('');
+
+    // Toast State Management
+    const [toast, setToast] = useState(null);
+
+    const showToast = (message, type = 'error') => {
+        setToast({ message, type });
+        // Auto-dismiss after 4 seconds
+        setTimeout(() => {
+            setToast(current => current?.message === message ? null : current);
+        }, 4000);
+    };
 
     const handleFileUpload = async (e) => {
         const file = e.target.files[0];
@@ -55,7 +91,7 @@ export default function OptimizerPage() {
             }
         } catch (error) {
             console.error("Failed to load database:", error);
-            alert("Could not initialize the local database.");
+            showToast("Could not initialize the local SQLite database.");
         }
     };
 
@@ -63,18 +99,28 @@ export default function OptimizerPage() {
         e.preventDefault();
         if (!query.trim()) return;
         if (!db) {
-            alert("Please upload a SQLite database file first.");
+            showToast("Please upload a SQLite database file first.", "warning");
             return;
         }
 
         setIsOptimizing(true);
         setResult(null);
 
+        let originalLatency = 0;
+
+        // 1. Catch specific SQL errors from the user's query
         try {
             const startOriginal = performance.now();
             db.exec(query);
-            const originalLatency = performance.now() - startOriginal;
+            originalLatency = performance.now() - startOriginal;
+        } catch (dbError) {
+            showToast(`SQL Error: ${dbError.message}`);
+            setIsOptimizing(false);
+            return; // Stop execution if the initial query is invalid
+        }
 
+        // 2. Proceed with API Optimization
+        try {
             const response = await fetch('http://localhost:5000/api/optimize', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -108,7 +154,7 @@ export default function OptimizerPage() {
             setResult(data);
         } catch (error) {
             console.error("Error optimizing query:", error);
-            alert("Execution failed. Check your SQL syntax or database connection.");
+            showToast("Pipeline failed. Ensure the backend engine is running.");
         } finally {
             setIsOptimizing(false);
         }
@@ -340,7 +386,7 @@ export default function OptimizerPage() {
                                                 const gain = calculateGain(item.Original, item.Optimized);
                                                 const isDegradation = gain < 0;
 
-                                                // Dynamic Colors: Turn Red if efficiency drops (negative gain)
+                                                // Dynamic Colors: Turn Red if efficiency drops
                                                 const colorClass = isDegradation ? "text-rose-500" : ["text-indigo-400", "text-violet-400", "text-emerald-400"][idx];
                                                 const borderClass = isDegradation ? "border-rose-500/20" : ["border-indigo-500/20", "border-violet-500/20", "border-emerald-500/20"][idx];
                                                 const bgIconClass = isDegradation ? "bg-rose-500/10 text-rose-500" : `bg-white/[0.03] ${colorClass}`;
@@ -384,33 +430,17 @@ export default function OptimizerPage() {
                                                         <XAxis dataKey="metric" stroke="#52525b" tick={{ fill: '#71717a', fontSize: 10 }} axisLine={false} tickLine={false} />
                                                         <YAxis stroke="#52525b" tick={{ fill: '#71717a', fontSize: 10 }} axisLine={false} tickLine={false} />
                                                         <Tooltip
+                                                            content={<CustomTooltip />}
                                                             cursor={{ fill: '#ffffff03' }}
-                                                            contentStyle={{
-                                                                backgroundColor: '#09090b',
-                                                                border: '1px solid rgba(255,255,255,0.1)',
-                                                                borderRadius: '12px',
-                                                                padding: '12px',
-                                                                boxShadow: '0 20px 25px -5px rgba(0,0,0,0.5)',
-                                                                color: '#e4e4e7'
-                                                            }}
-                                                            labelStyle={{
-                                                                color: '#f4f4f5',
-                                                                fontWeight: 600
-                                                            }}
-                                                            itemStyle={{
-                                                                color: '#d4d4d8',
-                                                                fontSize: '12px',
-                                                                fontWeight: 500
-                                                            }}
                                                         />
                                                         <Bar dataKey="Original" radius={[4, 4, 0, 0]}>
                                                             {result.chartData.map((entry, index) => (
-                                                                <Cell key={`cell-legacy-${index}`} fill="#3f3f46" /> // Neutral gray for old
+                                                                <Cell key={`cell-legacy-${index}`} fill="#3f3f46" />
                                                             ))}
                                                         </Bar>
                                                         <Bar dataKey="Optimized" radius={[4, 4, 0, 0]}>
                                                             {result.chartData.map((entry, index) => (
-                                                                <Cell key={`cell-opt-${index}`} fill="#6366f1" /> // Indigo for new
+                                                                <Cell key={`cell-opt-${index}`} fill="#6366f1" />
                                                             ))}
                                                         </Bar>
                                                     </BarChart>
@@ -425,6 +455,45 @@ export default function OptimizerPage() {
                     </div>
                 </div>
             </div>
+
+            {/* Premium Toast Notification System */}
+            <AnimatePresence>
+                {toast && (
+                    <motion.div
+                        initial={{ opacity: 0, y: 50, scale: 0.9 }}
+                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                        exit={{ opacity: 0, y: 20, scale: 0.9 }}
+                        transition={{ type: "spring", stiffness: 300, damping: 25 }}
+                        className="fixed bottom-6 right-6 z-[100] flex items-start gap-3 pl-4 pr-5 py-4 bg-[#09090b] border rounded-xl shadow-2xl overflow-hidden max-w-sm"
+                        style={{
+                            borderColor: toast.type === 'warning' ? 'rgba(245, 158, 11, 0.3)' : 'rgba(244, 63, 94, 0.3)',
+                            boxShadow: toast.type === 'warning' ? '0 10px 40px -10px rgba(245, 158, 11, 0.15)' : '0 10px 40px -10px rgba(244, 63, 94, 0.15)'
+                        }}
+                    >
+                        {/* Subtle background glow */}
+                        <div
+                            className="absolute inset-0 opacity-10 pointer-events-none"
+                            style={{ backgroundColor: toast.type === 'warning' ? '#f59e0b' : '#f43f5e' }}
+                        />
+
+                        <div className={`p-1.5 rounded-lg shrink-0 mt-0.5 ${toast.type === 'warning' ? 'bg-amber-500/10' : 'bg-rose-500/10'}`}>
+                            <AlertCircle className={`w-4 h-4 ${toast.type === 'warning' ? 'text-amber-500' : 'text-rose-500'}`} />
+                        </div>
+                        <div className="flex flex-col gap-1 pr-2 relative z-10">
+                            <span className={`text-xs font-bold uppercase tracking-widest ${toast.type === 'warning' ? 'text-amber-500' : 'text-rose-500'}`}>
+                                {toast.type === 'warning' ? 'Action Required' : 'Engine Error'}
+                            </span>
+                            <p className="text-sm font-medium text-zinc-300 leading-relaxed">{toast.message}</p>
+                        </div>
+                        <button
+                            onClick={() => setToast(null)}
+                            className="absolute top-3 right-3 p-1 rounded-md text-zinc-500 hover:bg-white/5 hover:text-white transition-colors"
+                        >
+                            <X className="w-3.5 h-3.5" />
+                        </button>
+                    </motion.div>
+                )}
+            </AnimatePresence>
 
             {/* Custom Global Scrollbar targeted precisely to this UI */}
             <style dangerouslySetInnerHTML={{
