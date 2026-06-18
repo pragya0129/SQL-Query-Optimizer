@@ -11,8 +11,6 @@
 
 ---
 
-## 📸 Application Preview
-
 <h2>📸 Application Screenshots</h2>
 
 <p align="center">
