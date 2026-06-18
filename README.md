@@ -16,7 +16,9 @@
 > Replace the placeholder below with your own high-resolution screenshot or demo GIF.
 
 ```md
-![App Screenshot](\img1.png)
+![App Screenshot](./img1.png)
+![App Screenshot](./img2.png)
+
 ```
 
 ---
