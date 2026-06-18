@@ -30,27 +30,25 @@ app.post('/api/optimize', async (req, res) => {
         // We only feed the AI the rules relevant to its current context.
         // 1. Dynamic System Prompting
         const systemPrompt = `
-        You are an expert database performance engineer. Analyze the provided SQL query.
+        You are an expert database performance engineer specializing in SQLite. Analyze the provided SQL query.
         
-        CRITICAL RULES FOR ANALYSIS:
-        1. ${hasSchema
-                ? "CONTEXT: Schema provided. RULE: Evaluate all optimization paths. If rewriting the query (e.g., converting non-SARGable functions like YEAR() into date ranges) utilizes an existing index, YOU MUST PROVIDE THE REWRITTEN QUERY as the 'optimizedQuery'. DO NOT suggest creating a new index if a query rewrite solves the issue. Only output 'CREATE INDEX' if absolutely no query rewrite can fix the bottleneck."
-                : "CONTEXT: No schema provided. RULE: Assume perfect indexing. Focus ONLY on SQL syntax."}
-        2. EXPLANATION FORMAT: The explanation MUST be an array of distinct, concise bullet points explaining the architectural changes step-by-step.
+        CRITICAL RULES:
+        1. CONTEXT: Schema provided from a local Edge-WASM SQLite instance. RULE: Prioritize rewriting the query to utilize existing indexes (e.g., converting non-SARGable functions).
+        2. EXPLANATION: MUST be an array of distinct, concise bullet points explaining the architectural changes step-by-step.
         
         You must respond in pure, valid JSON matching exactly this schema:
         {
             "originalHighlight": "The exact substring causing the bottleneck",
-            "optimizedQuery": "The single BEST rewritten SQL query, OR the CREATE INDEX statement",
+            "optimizedQuery": "The single BEST rewritten SQL query",
             "optimizedHighlight": "The exact substring showing the core change",
-            "explanation": ["Point 1 explaining the flaw", "Point 2 explaining the fix", "Point 3 explaining the resulting gain"],
+            "explanation": ["Point 1", "Point 2", "Point 3"],
             "chartData": [
                 { "metric": "Execution Cost", "Original": number, "Optimized": number },
                 { "metric": "Rows Scanned", "Original": number, "Optimized": number },
-                { "metric": "Latency (ms)", "Original": number, "Optimized": number }
+                { "metric": "Latency (ms)", "Original": 0, "Optimized": 0 } 
             ]
         }
-        Generate realistic mock numbers for the chartData based on standard DB query planners.
+        Generate realistic mock numbers for Execution Cost and Rows Scanned. Keep Latency at 0 (the client edge node will inject real latency metrics).
         Do not include markdown blocks, just the JSON.
         `;
 

@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import initSqlJs from 'sql.js';
+import sqlWasmUrl from 'sql.js/dist/sql-wasm.wasm?url';
 import {
     Play, Sparkles, ArrowLeft, Database, AlertTriangle,
     CheckCircle2, Terminal, Cpu, Clock, BarChart3, HelpCircle, LayoutTemplate, Info
@@ -31,15 +33,53 @@ export default function OptimizerPage() {
     const [schema, setSchema] = useState('');
     const [isOptimizing, setIsOptimizing] = useState(false);
     const [result, setResult] = useState(null);
+    const [db, setDb] = useState(null);
+    const [dbFileName, setDbFileName] = useState('');
+
+    const handleFileUpload = async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        try {
+            // UPDATED LINE: Use the Vite-bundled URL directly
+            const SQL = await initSqlJs({ locateFile: () => sqlWasmUrl });
+
+            const buffer = await file.arrayBuffer();
+            const database = new SQL.Database(new Uint8Array(buffer));
+
+            setDb(database);
+            setDbFileName(file.name);
+
+            // Auto-extract the schema from the uploaded SQLite database!
+            const res = database.exec("SELECT sql FROM sqlite_master WHERE type='table';");
+            if (res.length > 0) {
+                const extractedSchema = res[0].values.map(v => v[0]).join('\n');
+                setSchema(extractedSchema);
+            }
+        } catch (error) {
+            console.error("Failed to load database:", error);
+            alert("Could not initialize the local database.");
+        }
+    };
 
     const handleOptimize = async (e) => {
         e.preventDefault();
         if (!query.trim()) return;
+        if (!db) {
+            alert("Please upload a SQLite database file first.");
+            return;
+        }
 
         setIsOptimizing(true);
         setResult(null);
 
         try {
+            // 1. Measure REAL latency of the original query
+            const startOriginal = performance.now();
+            db.exec(query);
+            const originalLatency = performance.now() - startOriginal;
+
+            // 2. Fetch the optimization and rewriting logic from your backend
             const response = await fetch('http://localhost:5000/api/optimize', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -47,12 +87,35 @@ export default function OptimizerPage() {
             });
 
             if (!response.ok) throw new Error('Failed to fetch optimization data');
-
             const data = await response.json();
+
+            // 3. Measure REAL latency of the AI's optimized query
+            let optimizedLatency = 0;
+            try {
+                const startOptimized = performance.now();
+                db.exec(data.optimizedQuery);
+                optimizedLatency = performance.now() - startOptimized;
+            } catch (execError) {
+                console.warn("AI generated an invalid query or index creation command.", execError);
+                optimizedLatency = originalLatency; // Fallback if it's a DDL command
+            }
+
+            // 4. Inject the real Edge-Computing metrics into the AI's chart data
+            data.chartData = data.chartData.map(item => {
+                if (item.metric === 'Latency (ms)') {
+                    return {
+                        metric: 'Latency (ms)',
+                        Original: Number(originalLatency.toFixed(2)),
+                        Optimized: Number(optimizedLatency.toFixed(2))
+                    };
+                }
+                return item;
+            });
+
             setResult(data);
         } catch (error) {
             console.error("Error optimizing query:", error);
-            alert("There was an error processing your query. Ensure the backend is running.");
+            alert("Execution failed. Check your SQL syntax or database connection.");
         } finally {
             setIsOptimizing(false);
         }
@@ -121,13 +184,20 @@ export default function OptimizerPage() {
 
                             <form onSubmit={handleOptimize} className="flex-1 flex flex-col min-h-0">
                                 <div className="flex-1 flex flex-col min-h-0 mb-4">
-                                    <label className="shrink-0 text-[10px] font-bold uppercase tracking-wider text-slate-500 ml-1 mb-2">Database Schema (Optional)</label>
-                                    <textarea
-                                        className="flex-1 h-full bg-[#040814] border border-white/5 rounded-2xl p-4 font-mono text-xs text-slate-300 focus:outline-none focus:border-indigo-500/50 focus:ring-1 focus:ring-indigo-500/20 transition-all resize-none placeholder-slate-700 [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-thumb]:bg-white/10 [&::-webkit-scrollbar-thumb]:rounded-full"
-                                        placeholder="CREATE TABLE users ( id INT PRIMARY KEY );"
-                                        value={schema}
-                                        onChange={(e) => setSchema(e.target.value)}
-                                    />
+                                    <label className="shrink-0 text-[10px] font-bold uppercase tracking-wider text-slate-500 ml-1 mb-2">Local SQLite Database (WASM)</label>
+                                    <div className="flex-1 flex flex-col items-center justify-center border-2 border-dashed border-white/10 rounded-2xl bg-[#040814] hover:bg-white/[0.02] transition-colors relative">
+                                        <input
+                                            type="file"
+                                            accept=".db,.sqlite,.sqlite3"
+                                            onChange={handleFileUpload}
+                                            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                                        />
+                                        <Database className={`w-6 h-6 mb-2 ${db ? 'text-emerald-500' : 'text-zinc-600'}`} />
+                                        <p className="text-xs text-zinc-400 font-medium">
+                                            {dbFileName ? dbFileName : "Drop .sqlite file here"}
+                                        </p>
+                                        {!dbFileName && <p className="text-[10px] text-zinc-600 mt-1">Runs locally in-browser via Edge Compute</p>}
+                                    </div>
                                 </div>
 
                                 <div className="flex-[1.2] flex flex-col min-h-0 mb-4">
