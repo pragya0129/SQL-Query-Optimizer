@@ -13,13 +13,15 @@
 
 ## 📸 Application Preview
 
-> Replace the placeholder below with your own high-resolution screenshot or demo GIF.
+<h2>📸 Application Screenshots</h2>
 
-```md
-![App Screenshot](./img1.png)
-![App Screenshot](./img2.png)
+<p align="center">
+  <img src="./img1.png" width="900" alt="Optimizer Dashboard">
+</p>
 
-```
+<p align="center">
+  <img src="./img2.png" width="900" alt="Query Analysis">
+</p>
 
 ---
 
