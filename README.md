@@ -1,4 +1,4 @@
-# ⚡ Optimizer Engine: Edge-Compute SQL Telemetry Studio
+# ⚡ Schema Aware SQL Query Optimizer
 
 ![React](https://img.shields.io/badge/React-18.x-blue?style=for-the-badge\&logo=react)
 ![TailwindCSS](https://img.shields.io/badge/Tailwind-3.x-06B6D4?style=for-the-badge\&logo=tailwindcss)
